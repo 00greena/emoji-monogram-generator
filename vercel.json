@@ -6,5 +6,7 @@
     "api/kei-ai/status.js": {
       "maxDuration": 10
     }
-  }
+  },
+  "buildCommand": "mkdir -p public && cp index.html public/",
+  "outputDirectory": "public"
 }
