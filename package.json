@@ -1,0 +1,27 @@
+{
+  "name": "emoji-monogram-generator",
+  "version": "1.0.0",
+  "description": "AI-powered emoji monogram generator using KEI.ai and Midjourney",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for static HTML'",
+    "start": "echo 'Use vercel dev for local development'"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "emoji",
+    "monogram",
+    "ai",
+    "midjourney",
+    "kei.ai",
+    "generator",
+    "design"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

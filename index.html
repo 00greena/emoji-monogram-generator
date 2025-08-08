@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Product Mockup Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            background: white;
+        }
+
+        .emoji-btn {
+            font-size: 24px;
+            padding: 8px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8f9fa;
+        }
+
+        .emoji-btn:hover {
+            background: #e9ecef;
+            transform: scale(1.1);
+        }
+
+        .emoji-btn.selected {
+            border-color: #667eea;
+            background: #667eea20;
+        }
+
+        .selected-emojis {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 50px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px dashed #ddd;
+        }
+
+        .selected-emoji {
+            font-size: 30px;
+            padding: 10px;
+            background: #667eea20;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            cursor: pointer;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.has-file {
+            border-color: #28a745;
+            background: #f8fff8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .ai-emoji-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .generated-emojis-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            min-height: 60px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px dashed #ddd;
+        }
+
+        .generated-emoji {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+
+        .generated-emoji:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+        .generated-emoji.selected {
+            border-color: #667eea;
+            background: #667eea20;
+        }
+
+        .generated-emoji img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .preview-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .product-preview {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #e8e8e8 0%, #f5f5f5 30%, #ffffff 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .monogram-display {
+            width: 450px;
+            height: 450px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.15),
+                0 15px 35px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .monogram-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        .placeholder-monogram {
+            text-align: center;
+            color: #999;
+            font-size: 18px;
+            padding: 40px;
+            line-height: 1.6;
+        }
+
+        .placeholder-monogram .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .generation-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+            color: #666;
+            max-width: 500px;
+        }
+
+        .generation-info strong {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-preview {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .monogram-display {
+                width: 350px;
+                height: 350px;
+            }
+        }
+
+        /* Add shadow underneath the entire product */
+        .product-preview::before {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 40px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Emoji Product Generator</h1>
+            <p>Create stunning product mockups with emojis and your logo</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="section">
+                    <h3>📱 Select Emojis (up to 4)</h3>
+                    <div class="emoji-grid" id="emojiGrid"></div>
+                    <div class="selected-emojis" id="selectedEmojis">
+                        <div style="color: #999; font-style: italic;">Click emojis above to select them...</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>🤖 Generate Custom Emoji with Midjourney</h3>
+                    <div class="ai-emoji-section">
+                        <input type="text" id="emojiPrompt" placeholder="Describe your custom emoji... (e.g., 'a golden star with sparkles')" 
+                               style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; font-size: 14px;">
+                        <button class="btn btn-primary" id="generateEmojiBtn" style="width: 100%; margin-bottom: 15px;">
+                            🎨 Generate with Midjourney
+                        </button>
+                        <div id="generatedEmojis" class="generated-emojis-container"></div>
+                        <div id="emojiLoadingState" class="loading-state" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Generating with Midjourney...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>🖼️ Upload Logo</h3>
+                    <div class="upload-area" id="uploadArea">
+                        <div id="uploadContent">
+                            <div style="font-size: 48px; margin-bottom: 15px;">📁</div>
+                            <p><strong>Click to upload your logo</strong></p>
+                            <p style="color: #666; margin-top: 10px;">PNG, JPG, SVG supported</p>
+                        </div>
+                        <input type="file" id="logoInput" class="file-input" accept="image/*">
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>⚙️ Actions</h3>
+                    <button class="btn btn-primary" id="generateBtn" style="width: 100%; margin-bottom: 10px;">
+                        🎨 Generate Monogram
+                    </button>
+                    <div id="previewLoadingState" class="loading-state" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Creating your monogram pattern...</p>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
+                        <h4 style="margin-bottom: 10px; color: #856404;">🔧 Backend Setup Required</h4>
+                        <p style="font-size: 13px; color: #856404; margin-bottom: 10px;">
+                            This app needs KEI.ai API endpoints on your server:
+                        </p>
+                        <ul style="font-size: 12px; color: #856404; margin-left: 20px;">
+                            <li><code>/api/kei-ai/generate</code> - Start generation</li>
+                            <li><code>/api/kei-ai/status</code> - Check progress</li>
+                        </ul>
+                        <p style="font-size: 12px; color: #856404; margin-top: 10px;">
+                            <strong>For Vercel:</strong> Create API routes in <code>/api/kei-ai/</code> folder
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-area">
+                <div class="product-preview">
+                    <div class="monogram-display" id="monogramDisplay">
+                        <div class="placeholder-monogram">
+                            <div class="icon">🎨</div>
+                            <div><strong>Generated Monogram Download</strong></div>
+                            <div>Select up to 4 emojis and upload your logo, then click "Generate Monogram" to get a download link.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="generation-info" id="generationInfo" style="display: none;">
+                    <strong>Generation Prompt:</strong><br>
+                    <span id="promptText"></span>
+                </div>
+
+                <div id="downloadSection" style="display: none; margin-top: 20px;">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border: 2px solid #28a745;">
+                        <h4 style="color: #28a745; margin-bottom: 15px;">✅ Generation Complete!</h4>
+                        <p style="margin-bottom: 15px;">Your custom monogram has been generated successfully.</p>
+                        <a id="downloadLink" href="#" target="_blank" class="btn btn-primary" style="display: block; text-align: center; text-decoration: none;">
+                            📥 Download Your Monogram
+                        </a>
+                        <p style="margin-top: 10px; font-size: 12px; color: #666;">Right-click and "Save As" to download the image</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+                        <div style="font-size: 24px; color: green; margin-bottom: 10px;">✅</div>
+                        <p><strong>Logo uploaded successfully!</strong></p>
+                        <p style="color: #666; margin-top: 5px;">${file.name}</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Generate monogram preview using AI
+        document.getElementById('generateBtn').onclick = function() {
+            generateMonogramPreview();
+        };
+
+        // Generate custom emoji
+        document.getElementById('generateEmojiBtn').onclick = function() {
+            generateCustomEmoji();
+        };
+
+        async function generateMonogramPreview() {
+            if (selectedEmojis.length === 0) {
+                alert('Please select at least 1 emoji first!');
+                return;
+            }
+
+            if (!uploadedLogo) {
+                alert('Please upload your logo first!');
+                return;
+            }
+
+            const loadingState = document.getElementById('previewLoadingState');
+            const generateBtn = document.getElementById('generateBtn');
+            const monogramDisplay = document.getElementById('monogramDisplay');
+            const generationInfo = document.getElementById('generationInfo');
+            const promptText = document.getElementById('promptText');
+
+            // Show loading state
+            loadingState.style.display = 'block';
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+
+            // Create the monogram prompt
+            const emojiDescriptions = selectedEmojis.map(emoji => {
+                if (emoji.includes('<img')) {
+                    return 'custom AI-generated icon';
+                }
+                return `${emoji} emoji`;
+            }).join(', ');
+
+            const monogramPrompt = `Create a professional monogram pattern design with these elements arranged symmetrically around a center space: ${emojiDescriptions}. Style: clean, modern, minimalist monogram pattern with elegant spacing, white background, high contrast, professional branding aesthetic. The center should have empty white space for a logo to be placed. Elements should be arranged in a balanced, harmonious pattern around the edges and corners. Perfect symmetry, luxury brand style, high-end design --ar 1:1 --style raw --v 6`;
+
+            // Show the prompt being used
+            promptText.textContent = monogramPrompt;
+            generationInfo.style.display = 'block';
+
+            try {
+                // Check if we're in development mode (no real API)
+                const isDevelopment = window.location.hostname === 'localhost' || 
+                                    window.location.hostname === '127.0.0.1' || 
+                                    !window.location.protocol.startsWith('http');
+
+                if (isDevelopment) {
+                    // Mock API response for development
+                    await simulateMonogramGeneration();
+                } else {
+                    // Real API call
+                    const response = await fetch('/api/kei-ai/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            service: 'midjourney',
+                            prompt: monogramPrompt,
+                            parameters: {
+                                aspect_ratio: '1:1',
+                                quality: 'high',
+                                stylize: 100,
+                                chaos: 0,
+                                version: 6
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate monogram');
+                    }
+
+                    const result = await response.json();
+                    
+                    // Check task status
+                    if (result.taskId) {
+                        await pollMonogramStatus(result.taskId, result.service);
+                    } else if (result.imageUrl) {
+                        displayMonogramResult(result.imageUrl);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error generating monogram:', error);
+                monogramDisplay.innerHTML = `
+                    <div class="placeholder-monogram">
+                        <div class="icon" style="color: #ff6b6b;">❌</div>
+                        <div><strong>Generation Failed</strong></div>
+                        <div>API Error: ${error.message}</div>
+                        <div style="margin-top: 15px; font-size: 12px; color: #999;">
+                            Set up KEI.ai API endpoints or test in development mode
+                        </div>
+                    </div>
+                `;
+            } finally {
+                loadingState.style.display = 'none';
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🎨 Generate Monogram';
+            }
+        }
+
+        // Mock function for development testing
+        async function simulateMonogramGeneration() {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // Create a mock monogram pattern
+                    createMockMonogram();
+                    resolve();
+                }, 2000); // Simulate 2 second generation time
+            });
+        }
+
+        function createMockMonogram() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 512;
+
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Create a pattern with selected emojis
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const positions = [
+                {x: 128, y: 128}, // Top left
+                {x: 384, y: 128}, // Top right
+                {x: 128, y: 384}, // Bottom left
+                {x: 384, y: 384}, // Bottom right
+                {x: 256, y: 80},  // Top center
+                {x: 256, y: 432}, // Bottom center
+                {x: 80, y: 256},  // Left center
+                {x: 432, y: 256}  // Right center
+            ];
+
+            // Place selected emojis in pattern
+            selectedEmojis.forEach((emoji, index) => {
+                if (index < positions.length && !emoji.includes('<img')) {
+                    ctx.fillText(emoji, positions[index].x, positions[index].y);
+                }
+            });
+
+            // Add decorative border
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(20, 20, 472, 472);
+
+            // Add center circle for logo space
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(256, 256, 80, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const mockImageUrl = canvas.toDataURL();
+            displayMonogramResult(mockImageUrl);
+        }
+
+        async function generateCustomEmoji() {
+            const prompt = document.getElementById('emojiPrompt').value.trim();
+            if (!prompt) {
+                alert('Please enter a description for your custom emoji!');
+                return;
+            }
+
+            const loadingState = document.getElementById('emojiLoadingState');
+            const generateBtn = document.getElementById('generateEmojiBtn');
+            const generatedContainer = document.getElementById('generatedEmojis');
+
+            // Show loading state
+            loadingState.style.display = 'block';
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+            generatedContainer.innerHTML = '';
+
+            try {
+                // Check if we're in development mode
+                const isDevelopment = window.location.hostname === 'localhost' || 
+                                    window.location.hostname === '127.0.0.1' || 
+                                    !window.location.protocol.startsWith('http');
+
+                if (isDevelopment) {
+                    // Mock emoji generation for development
+                    await simulateEmojiGeneration(prompt);
+                } else {
+                    // Enhanced prompt for emoji-style generation with Midjourney parameters
+                    const enhancedPrompt = `Create a clean, simple emoji-style icon: ${prompt}. Style: flat design, bold colors, white background, circular or square shape, minimal details, high contrast, emoji aesthetic, professional icon design --ar 1:1 --style raw --v 6`;
+
+                    const response = await fetch('/api/kei-ai/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            service: 'midjourney',
+                            prompt: enhancedPrompt,
+                            parameters: {
+                                aspect_ratio: '1:1',
+                                quality: 'high',
+                                stylize: 50,
+                                chaos: 0,
+                                version: 6
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate emoji');
+                    }
+
+                    const result = await response.json();
+                    
+                    // Check task status
+                    if (result.taskId) {
+                        await pollGenerationStatus(result.taskId, result.service);
+                    } else if (result.imageUrl) {
+                        displayGeneratedEmoji(result.imageUrl);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error generating emoji:', error);
+                generatedContainer.innerHTML = `
+                    <div style="color: #999; padding: 20px; text-align: center;">
+                        Failed to generate emoji: ${error.message}
+                        <div style="margin-top: 10px; font-size: 12px;">
+                            Set up KEI.ai API endpoints or test in development mode
+                        </div>
+                    </div>
+                `;
+            } finally {
+                loadingState.style.display = 'none';
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🎨 Generate with Midjourney';
+            }
+        }
+
+        // Mock emoji generation for development
+        async function simulateEmojiGeneration(prompt) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // Create a mock emoji based on the prompt
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 128;
+                    canvas.height = 128;
+
+                    // Gradient background
+                    const gradient = ctx.createRadialGradient(64, 64, 20, 64, 64, 64);
+                    gradient.addColorStop(0, '#ff6b6b');
+                    gradient.addColorStop(1, '#ff8e8e');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(64, 64, 60, 0, 2 * Math.PI);
+                    ctx.fill();
+
+                    // Add text representation
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Use first letter of prompt
+                    const letter = prompt.charAt(0).toUpperCase();
+                    ctx.fillText(letter, 64, 64);
+
+                    const mockEmojiUrl = canvas.toDataURL();
+                    displayGeneratedEmoji(mockEmojiUrl);
+                    resolve();
+                }, 1500);
+            });
+        }
+
+        async function pollMonogramStatus(taskId, service) {
+            const maxAttempts = 60; // Midjourney can take longer, so 60 attempts = 6 minutes max
+            let attempts = 0;
+
+            const checkStatus = async () => {
+                try {
+                    const response = await fetch('/api/kei-ai/status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            service: service,
+                            taskId: taskId
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'completed' && result.imageUrl) {
+                        displayMonogramResult(result.imageUrl);
+                        return;
+                    } else if (result.status === 'failed' || result.status === 'error') {
+                        throw new Error('Generation failed');
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        // Update loading message to show progress
+                        const loadingState = document.getElementById('previewLoadingState');
+                        const progressMsg = loadingState.querySelector('p');
+                        if (progressMsg) {
+                            progressMsg.textContent = `Creating your monogram pattern... (${attempts}/${maxAttempts})`;
+                        }
+                        setTimeout(checkStatus, 6000);
+                    } else {
+                        throw new Error('Generation timeout');
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                    document.getElementById('monogramDisplay').innerHTML = `
+                        <div class="placeholder-monogram">
+                            <div class="icon" style="color: #ff6b6b;">⏰</div>
+                            <div><strong>Generation Timeout</strong></div>
+                            <div>Midjourney generation took too long. Please try again.</div>
+                        </div>
+                    `;
+                }
+            };
+
+            checkStatus();
+        }
+
+        async function pollGenerationStatus(taskId, service) {
+            const maxAttempts = 60; // Midjourney can take longer
+            let attempts = 0;
+
+            const checkStatus = async () => {
+                try {
+                    const response = await fetch('/api/kei-ai/status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            service: service,
+                            taskId: taskId
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'completed' && result.imageUrl) {
+                        displayGeneratedEmoji(result.imageUrl);
+                        return;
+                    } else if (result.status === 'failed' || result.status === 'error') {
+                        throw new Error('Generation failed');
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        // Update loading message
+                        const loadingState = document.getElementById('emojiLoadingState');
+                        const progressMsg = loadingState.querySelector('p');
+                        if (progressMsg) {
+                            progressMsg.textContent = `Generating your custom emoji... (${attempts}/${maxAttempts})`;
+                        }
+                        setTimeout(checkStatus, 6000);
+                    } else {
+                        throw new Error('Generation timeout');
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                    document.getElementById('generatedEmojis').innerHTML = '<div style="color: #999; padding: 20px; text-align: center;">Emoji generation failed. Please try again.</div>';
+                }
+            };
+
+            checkStatus();
+        }
+
+        function displayMonogramResult(imageUrl) {
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadLink = document.getElementById('downloadLink');
+            const monogramDisplay = document.getElementById('monogramDisplay');
+            
+            // Show download section
+            downloadSection.style.display = 'block';
+            downloadLink.href = imageUrl;
+            
+            // Update the display to show success
+            monogramDisplay.innerHTML = `
+                <div class="placeholder-monogram">
+                    <div class="icon" style="color: #28a745;">✅</div>
+                    <div><strong>Monogram Generated Successfully!</strong></div>
+                    <div>Your download link is ready below.</div>
+                </div>
+            `;
+        }
+
+        function displayGeneratedEmoji(imageUrl) {
+            const container = document.getElementById('generatedEmojis');
+            const emojiElement = document.createElement('div');
+            emojiElement.className = 'generated-emoji';
+            emojiElement.innerHTML = `<img src="${imageUrl}" alt="Generated emoji">`;
+            emojiElement.onclick = () => selectGeneratedEmoji(imageUrl, emojiElement);
+            
+            container.appendChild(emojiElement);
+            generatedEmojis.push(imageUrl);
+        }
+
+        function selectGeneratedEmoji(imageUrl, element) {
+            if (selectedEmojis.length < 4) {
+                selectedEmojis.push(`<img src="${imageUrl}" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;">`);
+                element.classList.add('selected');
+                updateSelectedDisplay();
+            }
+        }
+
+        // Initialize the app
+        initEmojiGrid();
+    </script>
+</body>
+</html>

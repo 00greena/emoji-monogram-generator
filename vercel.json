@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/kei-ai/generate.js": {
+      "maxDuration": 30
+    },
+    "api/kei-ai/status.js": {
+      "maxDuration": 10
+    }
+  }
+}
